@@ -1,57 +1,58 @@
-#define message_default "FA FF 36 4E 10 60 04 02 53 35 CB 20 10 10 3F 7F FA 66 BB 40 34 B8 3C 49 96 2D 3B 5A 1F 82 80 20 0C 39 FF 91 01 BA EC DD 81 BA 86 53 80 40 20 0C BE 64 DB 99 BC E7 FF 83 41 1D C2 CF C0 20 0C BE 90 48 80 3F 67 32 04 BF 54 89 04 E0 20 04 00 00 00 03 C9"
+#ifndef DATA_DRIVER_H
+#define DATA_DRIVER_H
 
-#define y "0"
+#include <stdint.h>
+#include <string.h>
 
-/* defines y indepedent*/
+// Defina o número máximo de IDs que você pode ter
+#define MAX_IDS 19  
 
-    /* define Timestamp */
+// Defina o número de bytes iniciais irrelevantes
+#define BYTES_IRRELEVANTES 4 
 
-    #define XDI_UtcTime "1010"
-    #define XDI_PacketCounter "1020"
-    #define XDI_SampleTimeFine "1060"
-    #define XDI_SampleTimeCoarse "1070"
+// Estrutura para armazenar informações de ID
+typedef struct {
+    uint16_t id;       // ID do dado (por exemplo, 0x1060)
+    uint8_t length;    // Número de bytes de dados armazenados em formato byte ou número de dados armazenados em formato float
+    uint32_t data[256]; // Buffer para armazenar os dados em formato bytes
+    float dataf[64];    // Buffer para armazenar os dados em formato float (máx 64 floats)
+    char idName[50];   // Nome do ID (descrição)
+} DataDriver;
 
-    /* define Pressure */
+// Inicializa o array com os IDs conhecidos
+DataDriver knownIDs[MAX_IDS] = {
+    {0x0810, 0, {0}, {0}, "Temperature"},       // index: 0     dado: Real (R) -> Float32 se y = 0
+    {0x1010, 0, {0}, {0}, "UtcTime"},           // index: 1     dado: U4, U2, U1, U1, U1, U1, U1
+    {0x1020, 0, {0}, {0}, "PacketCounter"},     // index: 2     dado: U2
+    {0x1060, 0, {0}, {0}, "SampleTimeFine"},    // index: 3     dado: U4
+    {0x1070, 0, {0}, {0}, "SampleTimeCoarse"},  // index: 4     dado: U4
+    {0x2010, 0, {0}, {0}, "Quaternion"},        // index: 5     dado: R R R R
+    {0x2020, 0, {0}, {0}, "RotationMatrix"},    // index: 6     dado: R R R R R R R R R
+    {0x2030, 0, {0}, {0}, "EulerAngles"},       // index: 7     dado: R R R
+    {0x3010, 0, {0}, {0}, "BaroPressure"},      // index: 8     dado: U4
+    {0x4010, 0, {0}, {0}, "Delta V"},           // index: 9     dado: R R R
+    {0x4020, 0, {0}, {0}, "Acceleration"},      // index: 10    dado: R R R      
+    {0x4030, 0, {0}, {0}, "Free Acceleration"}, // index: 11    dado: R R R
+    {0x4040, 0, {0}, {0}, "AccelerationHR"},    // index: 12    dado: R R R
+    {0x8020, 0, {0}, {0}, "Rate of Turn"},      // index: 13    dado: R R R
+    {0x8030, 0, {0}, {0}, "Delta Q"},           // index: 14    dado: R R R R
+    {0x8040, 0, {0}, {0}, "RateOfTurnHR"},      // index: 15    dado: R R R
+    {0xE010, 0, {0}, {0}, "StatusByte"},        // index: 16    dado: U1
+    {0xE020, 0, {0}, {0}, "StatusWord"},        // index: 17    dado: U4
+    {0xC020, 0, {0}, {0}, "MagneticField"},     // index: 18    dado: R R R
+    // Adicione mais IDs conforme necessário
+};
 
-    #define XDI_BaroPressure "3010"
+// Função para converter um par de caracteres hexadecimais em um byte
+uint8_t hexCharToByte(const char *hex);
 
-    /* define Status */
+// Função para encontrar um ID na lista de IDs conhecidos
+int findIDIndex(uint16_t id, DataDriver *entries, int numEntries);
 
-    #define XDI_StatusByte "E010"
-    #define XDI_StatusWord "E020"
+// Função para converter 4 bytes para float
+float uint32ToFloat(const uint32_t bytes);
 
-/* defines y depedent*/  
+// Função para guardar a mensagem que vem em string na forma de float ou uint
+void GuardaMsg(DataDriver *Dest, char hexMessage[]);
 
-    /* define Temperature */
-
-    #define XDI_Temperature "081"
-
-    /* define Orientation Data */
-
-    #define XDI_Quaternion "201"
-    #define XDI_RotationMatrix "202"
-    #define XDI_EulerAngles "203"
-
-
-
-    /* define Acceleration */
-
-    #define XDI_DeltaV "401"
-    #define XDI_Acceleration "402"
-    #define XDI_FreeAcceleration "403"
-    #define XDI_AccelerationHR "404"
-
-    /* define Angular Velocity */
-
-    #define XDI_RateOfTurn "802"
-    #define XDI_DeltaQ "803"
-    #define	XDI_RateOfTurnHR "804"
-
-    /* define MagneticGroup */
-
-    #define XDI_MAGNETICFIELD = "C02"
-
-/* define functions */
-
-void une_msg(char string[]){
-} 
+#endif // DATA_DRIVER_H

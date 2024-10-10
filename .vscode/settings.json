@@ -4,6 +4,7 @@
         "string.h": "c",
         "stdio.h": "c",
         "driver_mti630.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "stdlib.h": "c"
     }
 }
