@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "C:\Users\Visita\Downloads\driver_mit630\driver_mti630.h"
+#include "driver_mti630.h"
 
 // Função para converter um par de caracteres hexadecimais em um byte
 uint8_t hexCharToByte(const char *hex) {

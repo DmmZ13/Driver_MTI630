@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "C:\Users\Visita\Downloads\driver_mit630\driver_mti630.h"
+#include "driver_mti630.h"
 
 void main() {
     // Mensagem de exemplo em formato de string com espaços

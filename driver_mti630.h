@@ -43,16 +43,13 @@ DataDriver knownIDs[MAX_IDS] = {
     // Adicione mais IDs conforme necessário
 };
 
-// Função para converter um par de caracteres hexadecimais em um byte
+/* DEFINIÇÃO DE FUNÇÕES */
 uint8_t hexCharToByte(const char *hex);
 
-// Função para encontrar um ID na lista de IDs conhecidos
 int findIDIndex(uint16_t id, DataDriver *entries, int numEntries);
 
-// Função para converter 4 bytes para float
 float uint32ToFloat(const uint32_t bytes);
 
-// Função para guardar a mensagem que vem em string na forma de float ou uint
 void GuardaMsg(DataDriver *Dest, char hexMessage[]);
 
 #endif // DATA_DRIVER_H
