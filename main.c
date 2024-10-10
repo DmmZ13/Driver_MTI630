@@ -4,12 +4,12 @@
 #include <string.h>
 #include "driver_mti630.h"
 
-void main() {
+int main() {
     // Mensagem de exemplo em formato de string com espaços
     char hexMessage[] = "FA FF 36 4E 10 60 04 02 53 35 CB 20 10 10 3F 7F FA 66 BB 40 34 B8 3C 49 96 2D 3B 5A 1F 82 80 20 0C 39 FF 91 01 BA EC DD 81 BA 86 53 80 40 20 0C BE 64 DB 99 BC E7 FF 83 41 1D C2 CF C0 20 0C BE 90 48 80 3F 67 32 04 BF 54 89 04 E0 20 04 00 00 00 03 C9";
 
     // Cria uma estrutura destino que será passada para a função
-    DataDriver destino[MAX_IDS];  // Supondo que MAX_IDS define o número de IDs conhecidos
+    DataDriver destino[MAX_IDS]; 
 
     // Chama a função para armazenar os dados da mensagem
     GuardaMsg(destino, hexMessage);
@@ -37,4 +37,5 @@ void main() {
         
         printf("\n");
     }
+    return 0;
 }
