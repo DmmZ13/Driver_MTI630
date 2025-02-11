@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #include "driver_mti630.h"
 
@@ -61,8 +62,41 @@ float uint32ToFloat(const uint32_t bytes) {
     return value;
 }
 
+// Função para adequar o formato da mensagem
+void formatHexMessage(const char *input, char *output) {
+    int inLen = strlen(input);
+    int outIndex = 0;
+    
+    for (int i = 0; i < inLen; i++) {
+        if (input[i] == ' ' || input[i] == '\t') {
+            continue;  // Ignorar espaços e tabulações
+        }
+
+        if (isxdigit(input[i]) && (i == inLen - 1 || input[i + 1] == ' ' || input[i + 1] == '\t')) {
+            // Se for um único caractere hexadecimal isolado, adiciona '0' à esquerda
+            output[outIndex++] = '0';
+            output[outIndex++] = input[i];
+        } else {
+            // Copia normalmente se já estiver em pares
+            output[outIndex++] = input[i];
+            output[outIndex++] = input[++i]; // Pega o próximo caractere
+        }
+        
+        // Adiciona espaço entre pares, exceto no final
+        if (i < inLen - 1) {
+            output[outIndex++] = ' ';
+        }
+    }
+
+    output[outIndex] = '\0'; // Finaliza a string corretamente
+}
+
 // Função para guardar a mensagem que vem em string nos respectivos vetores
-void GuardaMsg(DataDriver *Dest, char hexMessage[]) {
+void GuardaMsg(DataDriver *Dest, char rawHexMessage[]) {
+
+    char hexMessage[strlen(rawHexMessage)];
+    formatHexMessage(rawHexMessage, hexMessage);
+
     printf("Processando mensagem: %s\n", hexMessage);
     // Copia os IDs conhecidos para Dest
     memcpy(Dest, knownIDs, sizeof(knownIDs));

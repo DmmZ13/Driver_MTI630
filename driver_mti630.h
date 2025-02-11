@@ -30,4 +30,6 @@ float uint32ToFloat(const uint32_t bytes);
 
 void GuardaMsg(DataDriver *Dest, char hexMessage[]);
 
+void formatHexMessage(const char *input, char *output);
+
 #endif // DATA_DRIVER_H
