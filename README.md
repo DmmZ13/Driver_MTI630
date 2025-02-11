@@ -1,0 +1,1 @@
+Note que para utilizar o driver disponibilizado, basta colocar os arquivos driver_mti630.c e driver_mti630.h no seu projeto, e implementar na main como pode ser visto no código abaixo, trocando hexMessage[] pela mensagem que você está recebendo do sensor via serial. 
