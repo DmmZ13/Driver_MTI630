@@ -97,7 +97,7 @@ void GuardaMsg(DataDriver *Dest, char rawHexMessage[]) {
     char hexMessage[strlen(rawHexMessage)];
     formatHexMessage(rawHexMessage, hexMessage);
 
-    printf("Processando mensagem: %s\n", hexMessage);
+    printf("Processando mensagem: %s\n", rawHexMessage);
     // Copia os IDs conhecidos para Dest
     memcpy(Dest, knownIDs, sizeof(knownIDs));
 
