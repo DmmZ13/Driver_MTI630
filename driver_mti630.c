@@ -29,21 +29,10 @@ DataDriver knownIDs[MAX_IDS] = {
     // Adicione mais IDs conforme necessário
 };
 
-// Função para converter um par de caracteres hexadecimais em um byte
-uint8_t hexCharToByte(const char *hex) {
-    uint8_t byte = 0;
-    for (int i = 0; i < 2; ++i) {
-        byte <<= 4;
-        if (hex[i] >= '0' && hex[i] <= '9') {
-            byte |= hex[i] - '0';
-        } else if (hex[i] >= 'A' && hex[i] <= 'F') {
-            byte |= hex[i] - 'A' + 10;
-        } else if (hex[i] >= 'a' && hex[i] <= 'f') {
-            byte |= hex[i] - 'a' + 10;
-        }
-    }
-    return byte;
-}
+typedef union {
+    uint32_t bytes;  // Armazena como inteiro de 32 bits
+    float real;        // Acessa como float
+} ConversorFloat;
 
 // Função para encontrar um ID na lista de IDs conhecidos
 int findIDIndex(uint16_t id, DataDriver *entries, int numEntries) {
@@ -55,70 +44,27 @@ int findIDIndex(uint16_t id, DataDriver *entries, int numEntries) {
     return -1;
 }
 
-// Função para converter 4 bytes para float
-float uint32ToFloat(const uint32_t bytes) {
-    float value;
-    memcpy(&value, &bytes, sizeof(float));  // Copia 4 bytes para o valor float
-    return value;
-}
+// Função para guardar a mensagem que vem em string nos respectivos vetores
+void GuardaMsg(DataDriver *Dest, uint8_t hexMessage[], size_t tamanho) {
 
-// Função para adequar o formato da mensagem
-void formatHexMessage(const char *input, char *output) {
-    int inLen = strlen(input);
-    int outIndex = 0;
-    
-    for (int i = 0; i < inLen; i++) {
-        if (input[i] == ' ' || input[i] == '\t') {
-            continue;  // Ignorar espaços e tabulações
-        }
-
-        if (isxdigit(input[i]) && (i == inLen - 1 || input[i + 1] == ' ' || input[i + 1] == '\t')) {
-            // Se for um único caractere hexadecimal isolado, adiciona '0' à esquerda
-            output[outIndex++] = '0';
-            output[outIndex++] = input[i];
-        } else {
-            // Copia normalmente se já estiver em pares
-            output[outIndex++] = input[i];
-            output[outIndex++] = input[++i]; // Pega o próximo caractere
-        }
-        
-        // Adiciona espaço entre pares, exceto no final
-        if (i < inLen - 1) {
-            output[outIndex++] = ' ';
+    printf("Mensagem formatada (16 bytes por linha):\n");
+    for (size_t i = 0; i < tamanho; i++) {
+        printf("%02X ", hexMessage[i]);  // Formato hexadecimal com 2 dígitos
+        if ((i + 1) % 16 == 0) {
+            printf("\n");  // Quebra de linha a cada 16 bytes
         }
     }
+    printf("\n");
 
-    output[outIndex] = '\0'; // Finaliza a string corretamente
-}
-
-// Função para guardar a mensagem que vem em string nos respectivos vetores
-void GuardaMsg(DataDriver *Dest, char rawHexMessage[]) {
-
-    char hexMessage[strlen(rawHexMessage)];
-    formatHexMessage(rawHexMessage, hexMessage);
-
-    printf("Processando mensagem: %s\n", rawHexMessage);
     // Copia os IDs conhecidos para Dest
     memcpy(Dest, knownIDs, sizeof(knownIDs));
-
-    int hexMessageLength = strlen(hexMessage);
-
-    // Converta a string hexagonal para um array de bytes, ignorando espaços
-    uint8_t message[hexMessageLength / 2];
-    int messageLength = 0;
-
-    for (int i = 0; i < hexMessageLength; i += 2) {
-        while (hexMessage[i] == ' ' || hexMessage[i] == '\t') i++; // Ignorar espaços e tabulações
-        if (hexMessage[i] == '\0' || hexMessage[i + 1] == '\0') break; // Verificar fim da string
-        message[messageLength++] = hexCharToByte(&hexMessage[i]);
-    }
 
     int numKnownIDs = MAX_IDS;  // Número de IDs conhecidos
     int pos = BYTES_IRRELEVANTES; // Começar após os primeiros bytes irrelevantes
 
-    while (pos < messageLength - 1) {
+    while (pos < tamanho - 1) {
         // Pega o ID (2 bytes)
-        uint16_t id = (message[pos] << 8) | message[pos + 1];
+        uint16_t id = (hexMessage[pos] << 8) | hexMessage[pos + 1];
         pos += 2;
 
         // Encontra o índice do ID
@@ -129,15 +75,17 @@ void GuardaMsg(DataDriver *Dest, char rawHexMessage[]) {
         }
 
         // Pega o comprimento dos dados associado ao ID
-        uint8_t length = message[pos];
+        uint8_t length = hexMessage[pos];
         pos++;
 
         // Verifica o tipo de dado e processa de acordo
         switch (index) {
             case 0: case 5: case 6: case 7: case 9: case 10: case 11:
             case 12: case 13: case 14: case 15: case 18: {
+                ConversorFloat valorFloat;
                 for (int i = 0; i < length / 4; ++i) {
-                    Dest[index].dataf[i] = uint32ToFloat(((message[pos] << 24) | (message[pos + 1] << 16) | (message[pos+2] << 8) | message[pos + 3]));
+                    valorFloat.bytes = ((hexMessage[pos] << 24) | (hexMessage[pos + 1] << 16) | (hexMessage[pos+2] << 8) | hexMessage[pos + 3]);
+                    Dest[index].dataf[i] = valorFloat.real;
                     pos += 4;
                 }
                 Dest[index].length = length / 4; // O comprimento é o número de floats
@@ -145,35 +93,35 @@ void GuardaMsg(DataDriver *Dest, char rawHexMessage[]) {
             }
 
             case 3: case 4: case 8: case 17: {
-                Dest[index].data[0] = ((message[pos] << 24) | (message[pos + 1] << 16) | (message[pos+2] << 8) | message[pos + 3]);
+                Dest[index].data[0] = ((hexMessage[pos] << 24) | (hexMessage[pos + 1] << 16) | (hexMessage[pos+2] << 8) | hexMessage[pos + 3]);
                 pos += 4;
                 Dest[index].length = length / 4; // O comprimento é o número de inteiros
                 break;
             }
 
             case 2: {
-                Dest[index].data[0] = ((message[pos] << 8) | message[pos + 1]);
+                Dest[index].data[0] = ((hexMessage[pos] << 8) | hexMessage[pos + 1]);
                 pos += 2;
                 Dest[index].length = length / 2; // O comprimento é o número de inteiros
                 break;
             }
 
             case 1: { 
-                Dest[index].data[0] = ((message[pos] << 24) | (message[pos + 1] << 16) | (message[pos+2] << 8) | message[pos + 3]);
+                Dest[index].data[0] = ((hexMessage[pos] << 24) | (hexMessage[pos + 1] << 16) | (hexMessage[pos+2] << 8) | hexMessage[pos + 3]);
                 pos += 4;
-                Dest[index].data[1] = ((message[pos] << 8) | message[pos + 1]);
+                Dest[index].data[1] = ((hexMessage[pos] << 8) | hexMessage[pos + 1]);
                 pos += 2;
-                Dest[index].data[2] = message[pos++];
-                Dest[index].data[3] = message[pos++];
-                Dest[index].data[4] = message[pos++];
-                Dest[index].data[5] = message[pos++];
-                Dest[index].data[6] = message[pos++];
+                Dest[index].data[2] = hexMessage[pos++];
+                Dest[index].data[3] = hexMessage[pos++];
+                Dest[index].data[4] = hexMessage[pos++];
+                Dest[index].data[5] = hexMessage[pos++];
+                Dest[index].data[6] = hexMessage[pos++];
                 Dest[index].length = 7; // Comprimento é 7 para esse caso
                 break;
             }
 
             case 16: {
-                Dest[index].data[0] = message[pos];
+                Dest[index].data[0] = hexMessage[pos];
                 Dest[index].length = length;
                 pos += length;
                 break;

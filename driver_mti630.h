@@ -28,8 +28,7 @@ int findIDIndex(uint16_t id, DataDriver *entries, int numEntries);
 
 float uint32ToFloat(const uint32_t bytes);
 
-void GuardaMsg(DataDriver *Dest, char hexMessage[]);
+void GuardaMsg(DataDriver *Dest, uint8_t hexMessage[], size_t tamanho);
 
-void formatHexMessage(const char *input, char *output);
 
 #endif // DATA_DRIVER_H
